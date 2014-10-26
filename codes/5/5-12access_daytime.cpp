@@ -4,6 +4,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <assert.h>
+#include <arpa/inet.h>
+
+/*
+ * 安装xinetd服务自带daytime服务功能
+ * 修改/etc/xinetd.d/daytime配置disable=no
+ * $service xinetd restart
+ * a.out 127.0.0.1连接到daytime服务，监听端口13
+ */
 
 int main( int argc, char *argv[] )
 {

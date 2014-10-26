@@ -1,4 +1,9 @@
 #include <stdio.h>
+/*
+ *大端模式（网络字节序）低位高字节，高位低字节
+ *小断模式（主机字节序）低位低字节，高位高字节， x86机器
+ *
+ */
 void byteorder()
 {
 	union
@@ -19,4 +24,10 @@ void byteorder()
 	{
 		printf( "unknown...\n" );
 	}
+}
+
+int main(int agrc, char* argv[])
+{
+	byteorder();
+	return 0;
 }
