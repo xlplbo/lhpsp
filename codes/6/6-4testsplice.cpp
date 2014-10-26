@@ -45,6 +45,7 @@ int main( int argc, char* argv[] )
     {
         int pipefd[2];
         assert( ret != -1 );
+		/* 没有使用用户程序缓冲区，我们称之为零拷贝 */
         ret = pipe( pipefd );
         ret = splice( connfd, NULL, pipefd[1], NULL, 32768, SPLICE_F_MORE | SPLICE_F_MOVE ); 
         assert( ret != -1 );

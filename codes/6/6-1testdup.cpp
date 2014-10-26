@@ -42,8 +42,13 @@ int main( int argc, char* argv[] )
     }
     else
     {
+		/*关闭0，1，2中的1*/
         close( STDOUT_FILENO );
+		/*将connfd描述符dup到最小未使用的文件描述符1作为新的描述符
+		 *相当于dup2(connfd, STDOUT_FILENO);
+		 */
         dup( connfd );
+		/*标准输出到1上的内容将写入connfd之中*/
         printf( "abcd\n" );
         close( connfd );
     }

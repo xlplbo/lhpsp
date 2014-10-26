@@ -16,29 +16,33 @@ int main( int argc, char* argv[] )
 	assert( filefd > 0 );
 
 	int pipefd_stdout[2];
-        int ret = pipe( pipefd_stdout );
+	int ret = pipe( pipefd_stdout );
 	assert( ret != -1 );
 
 	int pipefd_file[2];
-        ret = pipe( pipefd_file );
+    ret = pipe( pipefd_file );
 	assert( ret != -1 );
 
 	//close( STDIN_FILENO );
-	// dup2( pipefd_stdout[1], STDIN_FILENO );
+	//dup2( pipefd_stdout[1], STDIN_FILENO );
 	//write( pipefd_stdout[1], "abc\n", 4 );
+	// 将标准输入move到管道a
 	ret = splice( STDIN_FILENO, NULL, pipefd_stdout[1], NULL, 32768, SPLICE_F_MORE | SPLICE_F_MOVE );
 	assert( ret != -1 );
+	// 从管道a中读取内容写入另一个管道b
 	ret = tee( pipefd_stdout[0], pipefd_file[1], 32768, SPLICE_F_NONBLOCK ); 
 	assert( ret != -1 );
+	// 从管道b中读取写入到文件
 	ret = splice( pipefd_file[0], NULL, filefd, NULL, 32768, SPLICE_F_MORE | SPLICE_F_MOVE );
 	assert( ret != -1 );
+	// 从管道b中读取写入到标准输出
 	ret = splice( pipefd_stdout[0], NULL, STDOUT_FILENO, NULL, 32768, SPLICE_F_MORE | SPLICE_F_MOVE );
 	assert( ret != -1 );
 
 	close( filefd );
-        close( pipefd_stdout[0] );
-        close( pipefd_stdout[1] );
-        close( pipefd_file[0] );
-        close( pipefd_file[1] );
+    close( pipefd_stdout[0] );
+    close( pipefd_stdout[1] );
+    close( pipefd_file[0] );
+    close( pipefd_file[1] );
 	return 0;
 }

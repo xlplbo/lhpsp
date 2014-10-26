@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <sys/sendfile.h>
 
+/* 发送文件 */
 int main( int argc, char* argv[] )
 {
     if( argc <= 3 )

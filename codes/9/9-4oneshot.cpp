@@ -18,6 +18,7 @@ struct fds
 {
    int epollfd;
    int sockfd;
+   //pthread_mutex_t mutex;
 };
 
 int setnonblocking( int fd )
@@ -35,12 +36,17 @@ void addfd( int epollfd, int fd, bool oneshot )
     event.events = EPOLLIN | EPOLLET;
     if( oneshot )
     {
+		/* 该文件描述符fd只会被触发一次
+		 * 保证只有一个线程处理fd
+		 * 处理完成之后需重新EPOLL_CTL_MOD注册事件保证下一次能被触发到
+		 */
         event.events |= EPOLLONESHOT;
     }
     epoll_ctl( epollfd, EPOLL_CTL_ADD, fd, &event );
     setnonblocking( fd );
 }
 
+/* 保证下一次能被触发到 */
 void reset_oneshot( int epollfd, int fd )
 {
     epoll_event event;
@@ -53,6 +59,8 @@ void* worker( void* arg )
 {
     int sockfd = ( (fds*)arg )->sockfd;
     int epollfd = ( (fds*)arg )->epollfd;
+	//pthread_mutex_t mutex = ( (fds*)arg)->mutex;
+	//pthread_mutex_lock(&mutex);
     printf( "start new thread to receive data on fd: %d\n", sockfd );
     char buf[ BUFFER_SIZE ];
     memset( buf, '\0', BUFFER_SIZE );
@@ -67,9 +75,10 @@ void* worker( void* arg )
         }
         else if( ret < 0 )
         {
-            if( errno == EAGAIN )
+            if( errno == EAGAIN || errno == EWOULDBLOCK )
             {
-                reset_oneshot( epollfd, sockfd );
+				/* read完后重置EPOLLONESHOT属性 */
+		        reset_oneshot( epollfd, sockfd );
                 printf( "read later\n" );
                 break;
             }
@@ -78,9 +87,16 @@ void* worker( void* arg )
         {
             printf( "get content: %s\n", buf );
             sleep( 5 );
+			/* EPOLLONESHOT对socked文件描述符是独占的
+			 * 一旦业务逻辑处理事件过长将会导致不会响应下一次read事件
+			 * 导致数据丢失
+			 * 所以这种方法是不可取的
+			 */
         }
     }
     printf( "end thread receiving data on fd: %d\n", sockfd );
+	//pthread_mutex_unlock(&mutex);
+	return NULL;
 }
 
 int main( int argc, char* argv[] )
@@ -114,6 +130,7 @@ int main( int argc, char* argv[] )
     assert( epollfd != -1 );
     addfd( epollfd, listenfd, false );
 
+	//pthread_mutex_t mutex;
     while( 1 )
     {
         int ret = epoll_wait( epollfd, events, MAX_EVENT_NUMBER, -1 );
@@ -131,14 +148,20 @@ int main( int argc, char* argv[] )
                 struct sockaddr_in client_address;
                 socklen_t client_addrlength = sizeof( client_address );
                 int connfd = accept( listenfd, ( struct sockaddr* )&client_address, &client_addrlength );
-                addfd( epollfd, connfd, true );
+                addfd( epollfd, connfd, true ); // 设置为EPOLLONESHOT
+				//addfd( epollfd, connfd, false);
             }
             else if ( events[i].events & EPOLLIN )
             {
+				/* worker没有执行完read事件不会再在该sockfd上触发
+				 * 数据被丢弃
+				 */
+				printf("epoll cathy event: EPOLLIN\n");
                 pthread_t thread;
                 fds fds_for_new_worker;
                 fds_for_new_worker.epollfd = epollfd;
                 fds_for_new_worker.sockfd = sockfd;
+				//fds_for_new_worker.mutex = mutex;
                 pthread_create( &thread, NULL, worker, ( void* )&fds_for_new_worker );
             }
             else

@@ -14,6 +14,10 @@
 #define BUFFER_SIZE 1024
 static const char* status_line[2] = { "200 OK", "500 Internal server error" };
 
+/*
+ * 简单的http服务
+ */
+
 int main( int argc, char* argv[] )
 {
     if( argc <= 3 )
@@ -67,6 +71,7 @@ int main( int argc, char* argv[] )
             }
             else if( file_stat.st_mode & S_IROTH )
             {
+				/*如果有read权限，以只读的方式打开文件并读取到缓存*/
                 int fd = open( file_name, O_RDONLY );
                 file_buf = new char [ file_stat.st_size + 1 ];
                 memset( file_buf, '\0', file_stat.st_size + 1 );
@@ -89,7 +94,8 @@ int main( int argc, char* argv[] )
                              "Content-Length: %d\r\n", file_stat.st_size );
             len += ret;
             ret = snprintf( header_buf + len, BUFFER_SIZE-1-len, "%s", "\r\n" );
-            struct iovec iv[2];
+            /* 将两段buff组织到iovec中发送 */
+			struct iovec iv[2];
             iv[ 0 ].iov_base = header_buf;
             iv[ 0 ].iov_len = strlen( header_buf );
             iv[ 1 ].iov_base = file_buf;

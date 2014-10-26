@@ -12,6 +12,11 @@ bool daemonize()
 
     umask( 0 );
 
+	/* fork出来的子进程和父进程脱离关系
+	 * 新建一个session回话
+	 * 不会成为孤儿进程被init收养
+	 * 在新的session中成为领头进程
+	 */
     pid_t sid = setsid();
     if ( sid < 0 )
     {

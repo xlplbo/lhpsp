@@ -22,23 +22,23 @@ int main( int argc, char* argv[] )
 	printf( "ip is %s and port is %d\n", ip, port );
 
 	int ret = 0;
-        struct sockaddr_in address;
-        bzero( &address, sizeof( address ) );
-        address.sin_family = AF_INET;
-        inet_pton( AF_INET, ip, &address.sin_addr );
-        address.sin_port = htons( port );
+	struct sockaddr_in address;
+    bzero( &address, sizeof( address ) );
+    address.sin_family = AF_INET;
+    inet_pton( AF_INET, ip, &address.sin_addr );
+    address.sin_port = htons( port );
 
 	int listenfd = socket( PF_INET, SOCK_STREAM, 0 );
 	assert( listenfd >= 0 );
 
-        ret = bind( listenfd, ( struct sockaddr* )&address, sizeof( address ) );
+    ret = bind( listenfd, ( struct sockaddr* )&address, sizeof( address ) );
 	assert( ret != -1 );
 
 	ret = listen( listenfd, 5 );
 	assert( ret != -1 );
 
 	struct sockaddr_in client_address;
-        socklen_t client_addrlength = sizeof( client_address );
+    socklen_t client_addrlength = sizeof( client_address );
 	int connfd = accept( listenfd, ( struct sockaddr* )&client_address, &client_addrlength );
 	if ( connfd < 0 )
 	{
@@ -50,13 +50,14 @@ int main( int argc, char* argv[] )
 	printf( "connected with ip: %s and port: %d\n", inet_ntop( AF_INET, &client_address.sin_addr, remote_addr, INET_ADDRSTRLEN ), ntohs( client_address.sin_port ) );
 
 	char buf[1024];
-        fd_set read_fds;
-        fd_set exception_fds;
+    fd_set read_fds;
+    fd_set exception_fds;
 
-        FD_ZERO( &read_fds );
-        FD_ZERO( &exception_fds );
+    FD_ZERO( &read_fds );
+    FD_ZERO( &exception_fds );
 
-        int nReuseAddr = 1;
+    int nReuseAddr = 1;
+	/* SO_OOBINLINE外带数据 */
 	setsockopt( connfd, SOL_SOCKET, SO_OOBINLINE, &nReuseAddr, sizeof( nReuseAddr ) );
 	while( 1 )
 	{
@@ -64,17 +65,16 @@ int main( int argc, char* argv[] )
 		FD_SET( connfd, &read_fds );
 		FD_SET( connfd, &exception_fds );
 
-        	ret = select( connfd + 1, &read_fds, NULL, &exception_fds, NULL );
+        ret = select( connfd + 1, &read_fds, NULL, &exception_fds, NULL );
 		printf( "select one\n" );
-        	if ( ret < 0 )
-        	{
-                	printf( "selection failure\n" );
-                	break;
-        	}
-	
-        	if ( FD_ISSET( connfd, &read_fds ) )
+		if ( ret < 0 )
+        {
+          	printf( "selection failure\n" );
+           	break;
+        }
+	   	if ( FD_ISSET( connfd, &read_fds ) )
 		{
-        		ret = recv( connfd, buf, sizeof( buf )-1, 0 );
+      		ret = recv( connfd, buf, sizeof( buf )-1, 0 );
 			if( ret <= 0 )
 			{
 				break;
@@ -82,14 +82,15 @@ int main( int argc, char* argv[] )
 			printf( "get %d bytes of normal data: %s\n", ret, buf );
 		}
 		else if( FD_ISSET( connfd, &exception_fds ) )
-        	{
-        		ret = recv( connfd, buf, sizeof( buf )-1, MSG_OOB );
+       	{
+			/* 接受外带数据 */
+      		ret = recv( connfd, buf, sizeof( buf )-1, MSG_OOB );
 			if( ret <= 0 )
 			{
 				break;
 			}
 			printf( "get %d bytes of oob data: %s\n", ret, buf );
-        	}
+       	}
 
 	}
 
