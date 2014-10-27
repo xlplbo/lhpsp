@@ -28,9 +28,9 @@ public:
     process() : m_pid( -1 ){}
 
 public:
-    int m_busy_ratio;
-    pid_t m_pid;
-    int m_pipefd[2];
+    int m_busy_ratio;	// 繁忙度
+    pid_t m_pid;		// 进程pid
+    int m_pipefd[2];	// socketpair管道 父子进程通信
 };
 
 template< typename C, typename H, typename M >
@@ -114,14 +114,17 @@ processpool< C, H, M >::processpool( int listenfd, int process_number )
 
         m_sub_process[i].m_pid = fork();
         assert( m_sub_process[i].m_pid >= 0 );
+		/* pipe[0]为读而打开,pipe[1]为写而打开 */
         if( m_sub_process[i].m_pid > 0 )
         {
+			// 父进程读m_pipefd[0]
             close( m_sub_process[i].m_pipefd[1] );
             m_sub_process[i].m_busy_ratio = 0;
             continue;
         }
         else
-        {
+        { 
+			// 子进程写m_pipefd[1]
             close( m_sub_process[i].m_pipefd[0] );
             m_idx = i;
             break;

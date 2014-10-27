@@ -1,12 +1,7 @@
-Listen 10.194.70.225:12345
+Listen 192.168.77.102:8989
 
 <logical_host>
-  <name>10.194.70.225</name>
-  <port>13579</port>
-  <conns>5</conns>
-</logical_host>
-<logical_host>
-  <name>10.194.70.79</name>
-  <port>13579</port>
+  <name>192.168.77.102</name>
+  <port>8989</port>
   <conns>5</conns>
 </logical_host>

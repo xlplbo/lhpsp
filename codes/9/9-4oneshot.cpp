@@ -79,7 +79,8 @@ void* worker( void* arg )
             {
 				/* read完后重置EPOLLONESHOT属性 */
 		        reset_oneshot( epollfd, sockfd );
-                printf( "read later\n" );
+				//pthread_mutex_unlock(&mutex);
+				printf( "read later\n" );
                 break;
             }
         }
@@ -95,7 +96,7 @@ void* worker( void* arg )
         }
     }
     printf( "end thread receiving data on fd: %d\n", sockfd );
-	//pthread_mutex_unlock(&mutex);
+
 	return NULL;
 }
 

@@ -89,7 +89,7 @@ int main( int argc, char* argv[] )
     assert( epollfd != -1 );
     addfd( epollfd, listenfd );
 
-    ret = socketpair( PF_UNIX, SOCK_STREAM, 0, pipefd );
+    ret = socketpair( PF_UNIX, SOCK_STREAM, 0, pipefd );//!!!!!
     assert( ret != -1 );
     setnonblocking( pipefd[1] );
     addfd( epollfd, pipefd[0] );

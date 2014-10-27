@@ -21,6 +21,7 @@
 using std::pair;
 
 int mgr::m_epollfd = -1;
+/* 分装了connect功能 */
 int mgr::conn2srv( const sockaddr_in& address )
 {
     int sockfd = socket( PF_INET, SOCK_STREAM, 0 );
@@ -36,6 +37,7 @@ int mgr::conn2srv( const sockaddr_in& address )
     }
     return sockfd;
 }
+
 
 mgr::mgr( int epollfd, const host& srv ) : m_logic_srv( srv )
 {

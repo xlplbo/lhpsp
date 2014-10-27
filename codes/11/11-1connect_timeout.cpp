@@ -26,6 +26,7 @@ int timeout_connect( const char* ip, int port, int time )
     timeout.tv_sec = time;
     timeout.tv_usec = 0;
     socklen_t len = sizeof( timeout );
+	/* 设置超时时间 */
     ret = setsockopt( sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, len );
     assert( ret != -1 );
 
@@ -33,7 +34,7 @@ int timeout_connect( const char* ip, int port, int time )
     if ( ret == -1 )
     {
         if( errno == EINPROGRESS )
-        {
+        { /* 超时了 */
             printf( "connecting timeout\n" );
             return -1;
         }

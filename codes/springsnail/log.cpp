@@ -10,11 +10,19 @@ static const char* loglevels[] =
     "emerge!", "alert!", "critical!", "error!", "warn!", "notice:", "info:", "debug:"
 };
 
+/* 设置记录日志的等级 */
 void set_loglevel( int log_level )
 {
     level = log_level;
 }
 
+/* log_level记录log等级
+ * file_name记录日志的源文件
+ * line_num记录日志的源文件所在行
+ * format格式化
+ * ...可变参数
+ * 日志输出到stdout
+ */
 void log( int log_level,  const char* file_name, int line_num, const char* format, ... )
 {
     if ( log_level > level )

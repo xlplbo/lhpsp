@@ -37,11 +37,11 @@ public:
     time_heap( int cap ) throw ( std::exception )
         : capacity( cap ), cur_size( 0 )
     {
-	array = new heap_timer* [capacity];
-	if ( ! array )
-	{
-            throw std::exception();
-	}
+		array = new heap_timer* [capacity];
+		if ( ! array )
+		{
+		     throw std::exception();
+		}
         for( int i = 0; i < capacity; ++i )
         {
             array[i] = NULL;

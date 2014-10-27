@@ -102,6 +102,7 @@ int main( int argc, char* argv[] )
     const char* ip = argv[1];
     int port = atoi( argv[2] );
 
+	/* 非阻塞connect */
     int sockfd = unblock_connect( ip, port, 10 );
     if ( sockfd < 0 )
     {
