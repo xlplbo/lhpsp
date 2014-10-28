@@ -89,6 +89,12 @@ int main( int argc, char* argv[] )
     assert( epollfd != -1 );
     addfd( epollfd, listenfd );
 
+	/* 捕捉到信号并执行信号处理函数
+	 * 信号处理函数向管道pipefd[1]写入捕捉到信号sig
+	 * 注册到epoll中的conn收到EPOLLIN事件
+	 * 调用recv从管道pipefd[0]获取sig
+	 * 根据sig类型做相对应的处理
+	 */
     ret = socketpair( PF_UNIX, SOCK_STREAM, 0, pipefd );//!!!!!
     assert( ret != -1 );
     setnonblocking( pipefd[1] );
