@@ -6,12 +6,10 @@
 #include <errno.h>
 
 /* Simple error handling functions */
-
 #define handle_error_en(en, msg) \
       do { errno = en; perror(msg); exit(EXIT_FAILURE); } while (0)
 
-static void *
-sig_thread(void *arg)
+static void* sig_thread(void *arg)
 {
 	printf( "yyyyy, thread id is: %ld\n", pthread_self() );
     sigset_t aset;
@@ -35,31 +33,26 @@ static void handler( int arg )
 	printf( "xxxxx, thread id is: %ld\n", pthread_self() );
 }
 
- int
-       main(int argc, char *argv[])
-       {
-           pthread_t thread;
-           sigset_t set;
-           int s;
+int main(int argc, char *argv[])
+{
+    pthread_t thread;
+    sigset_t set;
+    int s;
 
-           /* Block SIGINT; other threads created by main() will inherit
- *               a copy of the signal mask. */
+    /* Block SIGINT; other threads created by main() will inherit a copy of the signal mask. */
+    signal( SIGQUIT, handler );
+	// if (s != 0)
+    //    handle_error_en(s, "pthread_sigmask");
 
-           signal( SIGQUIT, handler );
-//           if (s != 0)
-  //             handle_error_en(s, "pthread_sigmask");
-
-           s = pthread_create(&thread, NULL, &sig_thread, (void *) &set);
-           sigemptyset(&set);
-           sigaddset(&set, SIGQUIT);
-           sigaddset(&set, SIGUSR1);
-           //s = pthread_sigmask(SIG_BLOCK, &set, NULL);
-           if (s != 0)
-               handle_error_en(s, "pthread_create");
-           printf( "sub thread with id: %ld\n", thread );
-           /* Main thread carries on to create other threads and/or do
- *               other work */
-
-           pause();            /* Dummy pause so we can test program */
-       }
+    s = pthread_create(&thread, NULL, &sig_thread, (void *) &set);
+    sigemptyset(&set);
+    sigaddset(&set, SIGQUIT);
+    sigaddset(&set, SIGUSR1);
+    //s = pthread_sigmask(SIG_BLOCK, &set, NULL);
+    if (s != 0)
+         handle_error_en(s, "pthread_create");
+    printf( "sub thread with id: %ld\n", thread );
+    /* Main thread carries on to create other threads and/or do other work */
+    pause();            /* Dummy pause so we can test program */
+}
 
